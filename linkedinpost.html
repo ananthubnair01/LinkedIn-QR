@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Post on LinkedIn</title>
   <style>
     body {
@@ -45,12 +46,34 @@
     .go-btn:hover {
       background-color: #084a8f;
     }
+    /* Toast message */
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #0a66c2;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-size: 1rem;
+      transition: visibility 0s, opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
 
   <h2>📢 Share Your LinkedIn Post</h2>
-  <p>Step 1: Click "Copy Text"<br>Step 2: Click "Go to LinkedIn", paste, and post!</p>
+  <p>Step 1: Tap "Copy Text"<br>Step 2: Tap "Go to LinkedIn", paste, and post!</p>
 
   <textarea id="postText" readonly>
 Excited to be part of the #CognizantEvent2025 in Chennai! 🚀
@@ -60,31 +83,48 @@ Excited to be part of the #CognizantEvent2025 in Chennai! 🚀
   <button class="copy-btn" id="copyButton">📋 Copy Text</button>
   <button class="go-btn" id="goButton">🔗 Go to LinkedIn</button>
 
+  <div id="toast">✅ Text copied!</div>
+
   <script>
-    // ✅ Ensure DOM is loaded before running JS
-    document.addEventListener("DOMContentLoaded", () => {
-      const copyButton = document.getElementById("copyButton");
-      const goButton = document.getElementById("goButton");
-      const postText = document.getElementById("postText");
+    const copyButton = document.getElementById("copyButton");
+    const goButton = document.getElementById("goButton");
+    const postText = document.getElementById("postText");
+    const toast = document.getElementById("toast");
 
-      copyButton.addEventListener("click", () => {
-        // Fallback for browsers that block clipboard API
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(postText.value)
-            .then(() => alert("✅ Text copied to clipboard!"))
-            .catch(err => alert("❌ Copy failed. Try manually."));
+    // ✅ Show toast message
+    function showToast(message) {
+      toast.textContent = message;
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
+    }
+
+    // ✅ Copy text handler
+    copyButton.addEventListener("click", async () => {
+      const text = postText.value;
+
+      try {
+        // Modern API (works on HTTPS)
+        await navigator.clipboard.writeText(text);
+        showToast("✅ Text copied!");
+      } catch (err) {
+        // Fallback for mobile (manually select text)
+        postText.removeAttribute("readonly");
+        postText.select();
+        postText.setSelectionRange(0, text.length);
+        const success = document.execCommand("copy");
+        postText.setAttribute("readonly", true);
+
+        if (success) {
+          showToast("✅ Text copied!");
         } else {
-          // Legacy fallback
-          postText.select();
-          postText.setSelectionRange(0, postText.value.length);
-          document.execCommand("copy");
-          alert("✅ Text copied (using fallback)!");
+          showToast("⚠️ Please long-press and copy manually.");
         }
-      });
+      }
+    });
 
-      goButton.addEventListener("click", () => {
-        window.open("https://www.linkedin.com/feed/", "_blank");
-      });
+    // ✅ Open LinkedIn
+    goButton.addEventListener("click", () => {
+      window.open("https://www.linkedin.com/feed/", "_blank");
     });
   </script>
 
