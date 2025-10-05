@@ -29,6 +29,7 @@
       border: none;
       border-radius: 5px;
       transition: background 0.3s;
+      display: inline-block;
     }
     .copy-btn {
       background-color: #0073b1;
@@ -60,21 +61,30 @@ Excited to be part of the #CognizantEvent2025 in Chennai! 🚀
   <button class="go-btn" id="goButton">🔗 Go to LinkedIn</button>
 
   <script>
-    // Copy text using the modern Clipboard API
-    document.getElementById("copyButton").addEventListener("click", async () => {
-      const text = document.getElementById("postText").value;
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("✅ Text copied to clipboard!");
-      } catch (err) {
-        console.error("Failed to copy text: ", err);
-        alert("❌ Copy failed. Please copy manually.");
-      }
-    });
+    // ✅ Ensure DOM is loaded before running JS
+    document.addEventListener("DOMContentLoaded", () => {
+      const copyButton = document.getElementById("copyButton");
+      const goButton = document.getElementById("goButton");
+      const postText = document.getElementById("postText");
 
-    // Open LinkedIn in a new tab
-    document.getElementById("goButton").addEventListener("click", () => {
-      window.open("https://www.linkedin.com/feed/", "_blank");
+      copyButton.addEventListener("click", () => {
+        // Fallback for browsers that block clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(postText.value)
+            .then(() => alert("✅ Text copied to clipboard!"))
+            .catch(err => alert("❌ Copy failed. Try manually."));
+        } else {
+          // Legacy fallback
+          postText.select();
+          postText.setSelectionRange(0, postText.value.length);
+          document.execCommand("copy");
+          alert("✅ Text copied (using fallback)!");
+        }
+      });
+
+      goButton.addEventListener("click", () => {
+        window.open("https://www.linkedin.com/feed/", "_blank");
+      });
     });
   </script>
 
